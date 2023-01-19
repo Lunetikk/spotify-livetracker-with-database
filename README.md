@@ -24,6 +24,8 @@ DB=spotifymusic => your database if you wish to rename
 TMPFILE=/tmp/spotifyaudio.json => path of the tempfile
 WEBFILE=/var/www/mysite/spotifyaudio.php => path of the webfile which should be inside your webfolder 
 WEBFILE2=/var/www/mysite/spotifyaudio2.php => path to a second webfile which is used to compare both webfiles
+ALBUMIMGLOCALPATH=/var/www/mysite/albumcovers => fullpath to your albumcovers, used to save the images
+ALBUMIMGLOCALPATHWEB=albumcovers => shortpath to your albumcovers, used by HTML/ PHP to display the image
 ACCESSTOKENFILE="/spotify/token.json" => path to your accesstoken file which will be renewed if your token expired
 BASICAUTH="yourAUTHkey" => your basic auth key 
 REFRESH_TOKEN="yourREFRESHtoken" => your refresh token
