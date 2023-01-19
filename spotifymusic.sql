@@ -3,6 +3,7 @@ CREATE TABLE `album` (
   `album_id` smallint(5) NOT NULL,
   `album_name` char(128) DEFAULT NULL,
   `album_cover` varchar(1000) DEFAULT NULL,
+  `album_localimg` varchar(128) DEFAULT NULL,
   `album_type` varchar(128) DEFAULT NULL,
   `album_releasedate` date DEFAULT NULL,
   `album_tracknumber` smallint(5) DEFAULT NULL,
