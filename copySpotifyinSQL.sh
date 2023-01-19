@@ -15,6 +15,9 @@ TMPFILE=/tmp/spotifyaudio.json
 WEBFILE=/var/www/mysite/spotifyaudio.php
 WEBFILE2=/var/www/mysite/spotifyaudio2.php
 
+ALBUMIMGLOCALPATH=/var/www/mysite/albumcovers
+ALBUMIMGLOCALPATHWEB=albumcovers
+
 ACCESSTOKENFILE="/spotify/token.json"
 ACCESSTOKEN=`jq -r ".access_token" $ACCESSTOKENFILE`
 BASICAUTH="yourAUTHkey"
@@ -65,6 +68,27 @@ export ALBUMSPOTIFYURL=`cat $TMPFILE | jq -r '.item.album.external_urls.spotify'
 export ALBUMRELEASEDATE=`cat $TMPFILE | jq -r '.item.album.release_date'`
 export ALBUMIMG=`cat $TMPFILE | jq -r '.item.album.images[0].url'`
 
+export DBALBUMLOCALIMG=$(mysql --login-path=$LOGIN -D $DB -se "SELECT album_localimg FROM album WHERE album_name = '$ALBUM'")
+if [ -z "$DBALBUMLOCALIMG" ]
+then
+	i=100000
+	#switch UNIQUEFILE if you wish to use a date
+	#UNIQUEFILE=IMG$(date +%Y%m%d_%H%M%S).jpg
+	UNIQUEFILE=IMG$i.jpg
+	while [ -e $UNIQUEFILE ]
+	do
+		let i++
+	done
+
+	export ALBUMIMGLOCAL=$ALBUMIMGLOCALPATH/$UNIQUEFILE
+	export ALBUMIMGLOCALFILE=$UNIQUEFILE
+	export MISSINGALBUMIMGLOCAL=true
+
+	curl -o $ALBUMIMGLOCAL $ALBUMIMG
+else
+	export MISSINGALBUMIMGLOCAL=false
+fi
+
 }
 
 #----------GET_SPOTIFY_TRACK----------#
@@ -107,7 +131,12 @@ if [ "$OFFLINE" != "false" ]; then
    echo "<tr>" >> $WEBFILE
    echo "<td>State: </td>" >> $WEBFILE
    echo "<td>PLAYING</td>" >> $WEBFILE
-   echo "<td rowspan='4'><img src='"$ALBUMIMG"' alt='albumcover' style='width:64px;height:64px;'></td>" >> $WEBFILE
+   if [ -z "$DBALBUMLOCALIMG" ] || [ "$DBALBUMLOCALIMG" == "NULL" ]
+   then
+       echo "<td rowspan='4'><img src='$ALBUMIMGLOCALPATHWEB/$ALBUMIMGLOCALFILE' alt='albumcover' style='width:64px;height:64px;'></td>" >> $WEBFILE
+   else
+       echo "<td rowspan='4'><img src='$ALBUMIMGLOCALPATHWEB/$DBALBUMLOCALIMG' alt='albumcover' style='width:64px;height:64px;'></td>" >> $WEBFILE
+   fi
    echo "</tr>" >> $WEBFILE
    echo "<tr>" >> $WEBFILE
    echo "<td>Artist: </td>" >> $WEBFILE
@@ -197,6 +226,11 @@ INSERT INTO album (album_name,album_cover,artist_id,album_type,album_releasedate
 VALUES ('$ALBUM','$ALBUMIMG','$DBARTISTNEW','$ALBUMTYPE','$ALBUMRELEASEDATE','$ALBUMTRACKS','$ALBUMSPOTIFYURL');
 EOFMYSQL
         fi
+elif $MISSINGALBUMIMGLOCAL
+then
+mysql --login-path=$LOGIN -D $DB  << EOFMYSQL
+UPDATE album SET album_localimg = '$ALBUMIMGLOCALFILE' WHERE album_id = '$DBALBUM'
+EOFMYSQL
 fi
 
 DBALBUMNEW=$(mysql --login-path=$LOGIN -D $DB -se "SELECT album_id FROM album WHERE album_name = '$ALBUM'")
