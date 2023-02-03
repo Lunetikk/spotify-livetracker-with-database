@@ -72,17 +72,18 @@ export DBALBUMLOCALIMG=$(mysql --login-path=$LOGIN -D $DB -se "SELECT album_loca
 if [ -z "$DBALBUMLOCALIMG" ]
 then
 	i=100000
-	#switch UNIQUEFILE if you wish to use a date
-	#UNIQUEFILE=IMG$(date +%Y%m%d_%H%M%S).jpg
-	UNIQUEFILE=IMG$i.jpg
-	while [ -e $UNIQUEFILE ]
+	#switch if you wish to use a date
+        # IMG$(date +%Y%m%d_%H%M%S).jpg
+        # IMG$i.jpg
+        while [ -e "$ALBUMIMGLOCALPATH/IMG$i.jpg" ]
 	do
 		let i++
 	done
 
-	export ALBUMIMGLOCAL=$ALBUMIMGLOCALPATH/$UNIQUEFILE
-	export ALBUMIMGLOCALFILE=$UNIQUEFILE
-	export MISSINGALBUMIMGLOCAL=true
+        export UNIQUEFILE="IMG$i.jpg"
+        export ALBUMIMGLOCAL=$ALBUMIMGLOCALPATH/$UNIQUEFILE
+        export ALBUMIMGLOCALFILE=$UNIQUEFILE
+        export MISSINGALBUMIMGLOCAL=true
 
 	curl -o $ALBUMIMGLOCAL $ALBUMIMG
 else
